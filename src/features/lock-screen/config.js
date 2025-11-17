@@ -10,8 +10,9 @@ export const lockScreenConfig = {
    * SHA1 hash of the password
    * Default password: 'admin123'
    * Generate new hash: https://emn178.github.io/online-tools/sha1.html
+   * Can be overridden via VITE_PASSWORD_HASH environment variable
    */
-  passwordHash: process.env.REACT_APP_PASSWORD_HASH || 'f865b53623b121fd34ee5426c792e5c33af8c227',
+  passwordHash: import.meta.env.VITE_PASSWORD_HASH || 'f865b53623b121fd34ee5426c792e5c33af8c227',
 
   /**
    * Expiry time in milliseconds (0 means no expiry)
