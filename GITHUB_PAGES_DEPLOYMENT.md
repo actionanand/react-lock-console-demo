@@ -27,16 +27,12 @@ This project is configured to automatically deploy to GitHub Pages when you push
 
 ### 3. Base Path Configuration
 
-The workflow is configured for: `/react-lock-console-demo/`
+The workflow **automatically extracts** the base path from your `package.json` name field.
 
-✅ This is already set in `.github/workflows/react_github_pages.yml`:
+✅ Current `package.json` name: `"react-lock-console-demo"`  
+✅ This automatically becomes: `VITE_BASE_PATH=/react-lock-console-demo/`
 
-```yaml
-env:
-  VITE_BASE_PATH: /react-lock-console-demo/
-```
-
-If your repository name is different, update this value to match your repo name.
+**No manual configuration needed!** If you change the repository name in `package.json`, the deployment path will automatically update.
 
 ## 📦 Deployment Process
 
@@ -76,8 +72,62 @@ The workflow (`.github/workflows/react_github_pages.yml`):
 1. **Checkout**: Gets your code
 2. **Setup Node.js**: Installs Node.js 22.16.0
 3. **Install dependencies**: Runs `npm ci` for clean install
-4. **Build**: Creates production build with environment variables
-5. **Deploy**: Publishes `dist/` folder to `gh-pages` branch
+4. **Extract repository name**: Dynamically reads the name from `package.json`
+5. **Build**: Creates production build with environment variables
+6. **Deploy**: Publishes `dist/` folder to `gh-pages` branch
+
+### Dynamic Base Path Extraction
+
+The workflow automatically extracts the repository name from `package.json`:
+
+```yaml
+- name: Extract repository name from package.json
+  id: package
+  run: echo "name=$(node -p "require('./package.json').name")" >> $GITHUB_OUTPUT
+```
+
+**How this works:**
+
+1. **`node -p "require('./package.json').name"`**
+   - Runs Node.js to read and print the `name` field from `package.json`
+   - Example output: `react-lock-console-demo`
+
+2. **`echo "name=react-lock-console-demo"`**
+   - Creates a key-value pair: `name=react-lock-console-demo`
+
+3. **`>> $GITHUB_OUTPUT`**
+   - `$GITHUB_OUTPUT` is a special GitHub Actions environment variable
+   - It's a file path where you write output data
+   - GitHub Actions reads this file and makes the data available to subsequent steps
+   - Think of it as a way to "export" variables between workflow steps
+
+4. **`id: package`**
+   - This step is identified as `package`
+   - The output can be referenced in later steps
+
+5. **`${{ steps.package.outputs.name }}`**
+   - `steps` - Refers to all workflow steps
+   - `package` - The step ID we defined
+   - `outputs` - All outputs from that step
+   - `name` - The specific output key we wrote to `$GITHUB_OUTPUT`
+   - Final value: `react-lock-console-demo`
+
+**Used in the build step:**
+
+```yaml
+- name: Build React app for GitHub Pages
+  env:
+    VITE_PASSWORD_HASH: ${{ secrets.PASSWORD_HASH }}
+    VITE_BASE_PATH: /${{ steps.package.outputs.name }}/
+  run: npm run build
+```
+
+This creates: `VITE_BASE_PATH=/react-lock-console-demo/`
+
+**Benefits:**
+- ✅ Change the `name` in `package.json` → base path updates automatically
+- ✅ No manual configuration needed
+- ✅ Workflow is reusable across different projects
 
 ### Important Files
 
