@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project is configured to automatically deploy to GitHub Pages when you push to the `main` branch.
+This project is configured to automatically deploy to GitHub Pages when you push to the `main` branch using the `peaceiris/actions-gh-pages` action.
 
 ## 🚀 Initial Setup
 
@@ -10,9 +10,11 @@ This project is configured to automatically deploy to GitHub Pages when you push
 
 1. Go to your GitHub repository
 2. Navigate to **Settings** → **Pages**
-3. Under **Source**, select:
-   - Source: **GitHub Actions** (not "Deploy from a branch")
-4. Save the changes
+3. Under **Source**, you should see:
+   - Source: **Deploy from a branch**
+   - Branch: **gh-pages** / **(root)**
+   
+   ⚠️ **Note**: The workflow will automatically create the `gh-pages` branch on first deployment. If it doesn't appear initially, wait for the first workflow run to complete.
 
 ### 2. Add Required Secret
 
@@ -23,36 +25,36 @@ This project is configured to automatically deploy to GitHub Pages when you push
    - **Value**: Your SHA1 password hash
    - Example: `f865b53623b121fd34ee5426c792e5c33af8c227` (for password "admin123")
 
-### 3. Update Base Path (if needed)
+### 3. Base Path Configuration
 
-The workflow is configured for the repository path: `/react-lock-console-demo/`
+The workflow is configured for: `/react-lock-console-demo/`
 
-If your repository name is different, update the base path in `.github/workflows/build.yml`:
+✅ This is already set in `.github/workflows/react_github_pages.yml`:
 
 ```yaml
-- name: Build application
-  env:
-    VITE_PASSWORD_HASH: ${{ secrets.PASSWORD_HASH }}
-    VITE_BASE_PATH: /YOUR-REPO-NAME/  # ← Change this
-  run: npm run build
+env:
+  VITE_BASE_PATH: /react-lock-console-demo/
 ```
+
+If your repository name is different, update this value to match your repo name.
 
 ## 📦 Deployment Process
 
 ### Automatic Deployment
 
 Every push to `main` branch will:
-1. Build your application with environment variables
-2. Deploy to GitHub Pages automatically
-3. Your site will be available at: `https://actionanand.github.io/react-lock-console-demo/`
+1. Checkout your code
+2. Install dependencies with `npm ci`
+3. Build your application with environment variables (`VITE_PASSWORD_HASH` and `VITE_BASE_PATH`)
+4. Deploy to `gh-pages` branch automatically using `peaceiris/actions-gh-pages`
+5. Your site will be available at: `https://actionanand.github.io/react-lock-console-demo/`
 
-### Manual Deployment
+### Workflow Details
 
-You can also trigger deployment manually:
-1. Go to **Actions** tab
-2. Select **Build and Deploy to GitHub Pages**
-3. Click **Run workflow**
-4. Select `main` branch and run
+The workflow uses a single job that:
+- Builds the React app with Vite
+- Deploys the `dist/` folder to the `gh-pages` branch
+- Uses `enable_jekyll: false` to prevent Jekyll processing
 
 ## 🔧 How It Works
 
@@ -69,23 +71,19 @@ export default defineConfig({
 
 ### Workflow Steps
 
-1. **Build Job**:
-   - Checks out code
-   - Installs dependencies with `npm ci`
-   - Builds with `VITE_PASSWORD_HASH` and `VITE_BASE_PATH`
-   - Uploads build artifacts
+The workflow (`.github/workflows/react_github_pages.yml`):
 
-2. **Deploy Job** (only on main branch):
-   - Downloads build artifacts
-   - Configures GitHub Pages
-   - Uploads to Pages
-   - Deploys
+1. **Checkout**: Gets your code
+2. **Setup Node.js**: Installs Node.js 22.16.0
+3. **Install dependencies**: Runs `npm ci` for clean install
+4. **Build**: Creates production build with environment variables
+5. **Deploy**: Publishes `dist/` folder to `gh-pages` branch
 
 ### Important Files
 
-- `.github/workflows/build.yml` - GitHub Actions workflow
-- `vite.config.js` - Vite configuration with base path
-- `public/.nojekyll` - Prevents Jekyll processing on GitHub Pages
+- `.github/workflows/react_github_pages.yml` - GitHub Actions workflow
+- `vite.config.js` - Vite configuration with base path support
+- `public/.nojekyll` - Prevents Jekyll processing (copied to dist automatically)
 
 ## 🌐 Accessing Your Site
 
@@ -125,20 +123,30 @@ Then access: `http://localhost:4173/react-lock-console-demo/`
 
 ## ⚠️ Troubleshooting
 
+### "Get Pages site failed" Error
+
+This error occurs when using the official `actions/deploy-pages` action without proper GitHub Pages configuration. 
+
+**Solution**: We now use `peaceiris/actions-gh-pages@v3` which:
+- ✅ Automatically creates and manages the `gh-pages` branch
+- ✅ Doesn't require GitHub Pages to be pre-configured for "GitHub Actions"
+- ✅ Works with the traditional "Deploy from a branch" setting
+
 ### Deployment fails
 
 **Check these:**
-1. ✅ GitHub Pages is enabled in Settings → Pages
-2. ✅ Source is set to "GitHub Actions"
-3. ✅ `PASSWORD_HASH` secret is configured
-4. ✅ Workflow has required permissions (already configured)
+1. ✅ `PASSWORD_HASH` secret is configured in Settings → Secrets
+2. ✅ Workflow has `contents: write` permission (already configured)
+3. ✅ The `main` branch exists and you're pushing to it
+4. ✅ Check the Actions tab for detailed error logs
 
 ### Site shows 404 or assets not loading
 
 **Solutions:**
-1. Verify the base path in workflow matches your repo name
-2. Check browser console for asset loading errors
-3. Ensure `public/.nojekyll` file exists
+1. Verify GitHub Pages is using `gh-pages` branch in Settings → Pages
+2. Check the base path matches your repo name: `/react-lock-console-demo/`
+3. Wait a few minutes after first deployment for GitHub Pages to activate
+4. Clear browser cache and try again
 
 ### Images or assets not loading
 
