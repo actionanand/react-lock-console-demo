@@ -27,12 +27,16 @@ jobs:
         id: package
         run: echo "name=$(node -p "require('./package.json').name")" >> $GITHUB_OUTPUT
 
+
       - name: Build React app for GitHub Pages
         env:
           VITE_PASSWORD_HASH: ${{ secrets.PASSWORD_HASH }}
           # Set the base path for the React app based on the repository name, '//<repository-name>/'
           VITE_BASE_PATH: /${{ steps.package.outputs.name }}/
         run: npm run build
+
+      - name: Copy index.html to 404.html
+        run: npm run postbuild
 
       - name: Deploy
         if: success()
