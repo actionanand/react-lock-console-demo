@@ -11,7 +11,7 @@ export const lockScreenConfig = {
    * Default password: 'admin123'
    * Generate new hash: https://emn178.github.io/online-tools/sha1.html
    */
-  passwordHash: 'd033e22ae348aeb5660fc2140aec35850c4da997',
+  passwordHash: process.env.REACT_APP_PASSWORD_HASH || 'f865b53623b121fd34ee5426c792e5c33af8c227',
 
   /**
    * Expiry time in milliseconds (0 means no expiry)

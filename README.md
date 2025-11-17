@@ -77,7 +77,7 @@ Edit `src/features/lock-screen/config.js`:
 ```javascript
 export const lockScreenConfig = {
   // SHA1 hash of 'admin123' (change this!)
-  passwordHash: 'd033e22ae348aeb5660fc2140aec35850c4da997',
+  passwordHash: 'f865b53623b121fd34ee5426c792e5c33af8c227',
   
   // Expiry time in milliseconds (0 = no expiry)
   expiryTime: 0, // or 3600000 for 1 hour
