@@ -129,6 +129,20 @@ This creates: `VITE_BASE_PATH=/react-lock-console-demo/`
 - ✅ No manual configuration needed
 - ✅ Workflow is reusable across different projects
 
+### Client-Side Routing Fix for GitHub Pages
+
+GitHub Pages doesn't natively support client-side routing (React Router). When you refresh the page on a route like `/about`, GitHub Pages returns 404 because there's no physical file at that path.
+
+**Our Solution:**
+
+1. **Router basename** (`App.jsx`):
+   ```jsx
+   <Router basename={import.meta.env.BASE_URL}>
+   ```
+   - `import.meta.env.BASE_URL` is automatically set by Vite from the `base` config
+   - For GitHub Pages: `/react-lock-console-demo/`
+   - For local dev: `/`
+
 ### Important Files
 
 - `.github/workflows/react_github_pages.yml` - GitHub Actions workflow
